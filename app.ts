@@ -3,6 +3,7 @@ import { create } from "./libs/express.lib";
 // import { db } from "./lib/postgres.lib";
 // import { redisClient } from "./lib/redis.lib";
 // import { User, Task, List } from "./api/model";
+import { checkDatabaseConnection } from "./libs/prisma.lib";
 
 const app: Express = express();
 
@@ -11,7 +12,7 @@ const init = async (): Promise<void> => {
     await create(app);
 
     // postgresql
-    // await db();
+    await checkDatabaseConnection();
 
     // redis
     // await redisClient.connect();
