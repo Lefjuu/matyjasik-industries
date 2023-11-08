@@ -13,11 +13,18 @@ model User {
     lastName           String
     email              String   @unique
     tasks              Task[]
+    role               Role     @default(USER)
     password           String
+    verified           Boolean  @default(false)
     verifyToken        String
     verifyTokenExpires DateTime
     createdAt          DateTime @default(now())
     updatedAt          DateTime @updatedAt
+}
+
+enum Role {
+    ADMIN
+    USER
 }
 
 model Task {
