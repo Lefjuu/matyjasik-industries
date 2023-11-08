@@ -1,10 +1,7 @@
-import { init } from "./app";
-import express, { Application } from "express";
+import { app, init } from "./app";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const server: Application = express();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let serverInstance: any = null;
@@ -25,7 +22,7 @@ process.on("uncaughtException", (err: Error) => {
     try {
         await init();
 
-        serverInstance = server.listen(process.env.SERVER_PORT, () => {
+        serverInstance = app.listen(process.env.SERVER_PORT, () => {
             console.log(
                 `✔️  Server is ready.
                 \nmode: ${process.env.NODE_ENV}
