@@ -2,30 +2,22 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import AppError from "../../../utils/exceptions/AppError";
-import { createUserI } from "../../models/interfaces/user.interface";
+import {
+    createUserI,
+    createdUserI,
+} from "../../models/interfaces/local.interface";
 
 const prisma = new PrismaClient();
 
-export interface User {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    verifyToken: string;
-    verifyTokenExpires: Date;
-    verified: boolean;
-}
-
-export const signup = async (
+const signup = async (
     newUser: createUserI,
     url: string,
-): Promise<User | AppError> => {
+): Promise<createdUserI> => {
     const exists = await prisma.user.findUnique({
         where: { email: newUser.email },
     });
     if (exists) {
-        return new AppError("Email is already registered", 400);
+        throw new AppError("Email is already registered", 400);
     } else {
         const activationToken = crypto.randomBytes(32).toString("hex");
         const verifyToken = crypto
@@ -45,14 +37,12 @@ export const signup = async (
                 verifyTokenExpires: expirationTime,
             },
         });
-        console.log(createdUser);
         console.log(url);
 
         //TODO: Send verification email logic goes here
 
-        console.log(newUser);
-
         return createdUser;
-        // return createdUser;
     }
 };
+
+export default { signup };
