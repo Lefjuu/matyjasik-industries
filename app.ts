@@ -1,9 +1,7 @@
 import express, { Express } from "express";
 import { create } from "./libs/express.lib";
-// import { db } from "./lib/postgres.lib";
-// import { redisClient } from "./lib/redis.lib";
-// import { User, Task, List } from "./api/model";
 import { checkDatabaseConnection } from "./libs/prisma.lib";
+import { connect } from "./libs/redis.lib";
 
 const app: Express = express();
 
@@ -15,7 +13,7 @@ const init = async (): Promise<void> => {
     await checkDatabaseConnection();
 
     // redis
-    // await redisClient.connect();
+    await connect();
 };
 
 export { init, app };
