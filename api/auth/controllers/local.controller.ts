@@ -26,9 +26,7 @@ export class LocalController {
                 password,
             };
 
-            const url = `${req.protocol}://${req.get(
-                "host",
-            )}/api/v1/auth/verify/`;
+            const url = `${req.protocol}://${req.get("host")}`;
 
             const data = await localService.signup(newUser, url);
             if (data instanceof AppError) {

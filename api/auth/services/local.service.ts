@@ -6,6 +6,7 @@ import {
     createUserI,
     createdUserI,
 } from "../../models/interfaces/local.interface";
+import { Email } from "../../../utils/emails/send.email";
 
 const prisma = new PrismaClient();
 
@@ -39,7 +40,11 @@ const signup = async (
         });
         console.log(url);
 
-        //TODO: Send verification email logic goes here
+        const verificationUrl = `${url}/api/v1/auth/verify/?token=${verifyToken}`;
+        await new Email(createdUser).sendVerificationToken(
+            createdUser.firstName,
+            verificationUrl,
+        );
 
         return createdUser;
     }
