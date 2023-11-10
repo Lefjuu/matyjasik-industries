@@ -7,10 +7,8 @@ import {
     signupResponseI,
 } from "../../models/interfaces/local.interface";
 import { localService } from "../services";
-import {
-    generateAccessToken,
-    generateRefreshToken,
-} from "../../../utils/jwt/jwt.util";
+import { generateRefreshToken } from "../../../utils/jwt/jwt.util";
+import { generateSessionToken } from "../../../utils/jwt/auth.redis";
 
 export class LocalController {
     static signup = CatchError(
@@ -58,8 +56,8 @@ export class LocalController {
                 throw new AppError(data.message, data.statusCode);
             }
 
-            const refreshToken = generateRefreshToken(data.id);
-            const accessToken = generateAccessToken(data.id);
+            const refreshToken = await generateRefreshToken(data.id);
+            const accessToken = await generateSessionToken(data.id, data.role);
 
             res.status(200).json({
                 accessToken,
@@ -69,6 +67,7 @@ export class LocalController {
                     firstName: data.firstName,
                     lastName: data.lastName,
                     email: data.email,
+                    role: data.role,
                 },
             });
         },

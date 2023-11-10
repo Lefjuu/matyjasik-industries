@@ -36,5 +36,6 @@ export interface loginResponseI {
         firstName: string;
         lastName: string;
         email: string;
+        role: string;
     };
 }
