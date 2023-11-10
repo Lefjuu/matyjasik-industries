@@ -3,9 +3,14 @@ import AppError from "../../../utils/exceptions/AppError";
 import CatchError from "../../../utils/exceptions/CatchError";
 import {
     createUserI,
+    loginResponseI,
     signupResponseI,
 } from "../../models/interfaces/local.interface";
 import { localService } from "../services";
+import {
+    generateAccessToken,
+    generateRefreshToken,
+} from "../../../utils/jwt/jwt.util";
 
 export class LocalController {
     static signup = CatchError(
@@ -36,6 +41,35 @@ export class LocalController {
 
             res.status(201).json({
                 message: "Verification account email sent",
+            });
+        },
+    );
+
+    static login = CatchError(
+        async (req: Request, res: Response<loginResponseI>) => {
+            const { email, password } = req.body;
+
+            if (!email || !password) {
+                throw new AppError("Please provide email and password!", 400);
+            }
+
+            const data = await localService.login(email, password);
+            if (data instanceof AppError) {
+                throw new AppError(data.message, data.statusCode);
+            }
+
+            const refreshToken = generateRefreshToken(data.id);
+            const accessToken = generateAccessToken(data.id);
+
+            res.status(200).json({
+                accessToken,
+                refreshToken,
+                data: {
+                    id: data.id,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                },
             });
         },
     );

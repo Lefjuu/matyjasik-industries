@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { createUserI, updateUserI } from "../interfaces/user.interface";
+import { createUserI, updateUserI } from "../interfaces/local.interface";
 
 const prisma = new PrismaClient();
 
@@ -43,4 +43,11 @@ export const beforeUpdate = async (userData: updateUserI) => {
     });
 
     return updatedUser;
+};
+
+export const correctPassword = async (
+    candidatePassword: string,
+    password: string,
+) => {
+    return await bcrypt.compare(candidatePassword, password);
 };

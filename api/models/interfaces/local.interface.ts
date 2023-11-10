@@ -27,3 +27,14 @@ export interface createdUserI {
     verifyTokenExpires: Date;
     verified: boolean;
 }
+
+export interface loginResponseI {
+    accessToken: string;
+    refreshToken: string;
+    data: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    };
+}

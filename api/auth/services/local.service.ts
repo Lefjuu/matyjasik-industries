@@ -7,6 +7,7 @@ import {
     createdUserI,
 } from "../../models/interfaces/local.interface";
 import { Email } from "../../../utils/emails/send.email";
+import { correctPassword } from "../../models/hooks/user.hooks";
 
 const prisma = new PrismaClient();
 
@@ -50,4 +51,18 @@ const signup = async (
     }
 };
 
-export default { signup };
+const login = async (email: string, password: string) => {
+    const user = await prisma.user.findUnique({
+        where: { email: email },
+    });
+
+    if (!user || !(await correctPassword(password, user.password))) {
+        throw new AppError("Incorrect login or password", 401);
+    } else if (!user.verified) {
+        throw new AppError("Verify your account", 401);
+    } else {
+        return user;
+    }
+};
+
+export default { signup, login };
