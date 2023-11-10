@@ -1,17 +1,13 @@
-// import { Request, Response } from "express";
 import jwt, { Secret } from "jsonwebtoken";
-// import { User } from "../models/User"; // Assuming you import the User model from the appropriate file
+import { generateAccessTokenI } from "../../api/models/interfaces/token.interface";
 
-const generateAccessToken = (id: number): string => {
-    return jwt.sign(
-        { userId: id },
-        process.env.JWT_SECRET_ACCESS_KEY as Secret,
-        {
-            expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
-        },
-    );
+const generateAccessToken = async (data: generateAccessTokenI) => {
+    try {
+        return await jwt.sign(data, process.env.JWT_SECRET_ACCESS_KEY || "");
+    } catch (err) {
+        return null;
+    }
 };
-
 const generateRefreshToken = (id: number): string => {
     return jwt.sign(
         { userId: id },
