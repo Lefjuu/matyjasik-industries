@@ -4,3 +4,4 @@ dist
 pgadmin
 api/models/prisma/migrations
 data
+.VSCodeCounter

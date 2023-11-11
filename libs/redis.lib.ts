@@ -62,4 +62,4 @@ const expire: ExpireFunction = async (args) => {
     return redis.expire(args.key, args.expiration);
 };
 
-export { connect, redis, set, get, expire };
+export default { connect, redis, set, get, expire };

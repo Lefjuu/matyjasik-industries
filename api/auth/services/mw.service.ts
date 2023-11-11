@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import AppError from "../../../utils/exceptions/AppError";
-import { check, renew } from "../../../utils/jwt/auth.redis";
+import redisUtils from "../../../utils/jwt/auth.redis";
 
 export const mw =
     (required: string[] = []) =>
@@ -23,7 +23,7 @@ export const mw =
                 return next(new AppError("Invalid token format", 400));
             }
 
-            const decoded = await check(tokenParts[1]);
+            const decoded = await redisUtils.check(tokenParts[1]);
 
             if (decoded && required.length > 0 && "ROLE" in decoded) {
                 const isAuthorized = required.some((role) =>
@@ -34,7 +34,7 @@ export const mw =
                 }
             }
             if (decoded) {
-                await renew(decoded.key);
+                await redisUtils.renew(decoded.key);
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (req as any).user = decoded;
                 next();
@@ -48,6 +48,5 @@ export const mw =
                 console.error(error);
                 return res.status(403).json({ msg: "Token expired in redis" });
             }
-            // }
         }
     };

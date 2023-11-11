@@ -52,7 +52,7 @@ const decodeRefreshToken = (token: string): Promise<unknown> => {
     });
 };
 
-export {
+export default {
     generateAccessToken,
     generateRefreshToken,
     decodeAccessToken,

@@ -3,13 +3,13 @@ import {
     expireRedisI,
     setRedisI,
 } from "../../api/models/interfaces/token.interface";
-import { expire, set } from "../../libs/redis.lib";
-import { decodeAccessToken, generateAccessToken } from "./jwt.util";
-import { get } from "http";
+import redisLib from "../../libs/redis.lib";
+import jwtUtils from "./jwt.util";
+import commonUtils from "../common.util";
 
 const generateSessionToken = async (id: number, role: string) => {
-    const key = `${id}:${hash(8)}`;
-    const token = await generateAccessToken({ key, role });
+    const key = `${id}:${commonUtils.generateHash(8)}`;
+    const token = await jwtUtils.generateAccessToken({ key, role });
 
     const expirationTime = process.env.REDIS_EXPIRES_IN || "";
 
@@ -21,7 +21,7 @@ const generateSessionToken = async (id: number, role: string) => {
             expiration: expirationTime,
         };
 
-        await set(redisArgs);
+        await redisLib.set(redisArgs);
         return token;
     }
 
@@ -29,9 +29,9 @@ const generateSessionToken = async (id: number, role: string) => {
 };
 
 const check = async (token: string) => {
-    const decoded = (await decodeAccessToken(token)) as decodedTokenI;
+    const decoded = (await jwtUtils.decodeAccessToken(token)) as decodedTokenI;
 
-    const data = await get(decoded.key);
+    const data = await redisLib.get(decoded.key);
     if (decoded.key) {
         const id = decoded.key.split(":");
         return decoded.key && data ? { ...decoded, id: id[0] } : null;
@@ -43,27 +43,14 @@ const renew = async (key: string): Promise<void | null> => {
     try {
         const redisArgs: expireRedisI = {
             key,
-            // deleted expirationFlag "EX"
+            // deleted expirationFlag "EXa"
             expiration: process.env.REDIS_EXPIRES_IN || "",
         };
-        await expire(redisArgs);
+        await redisLib.expire(redisArgs);
     } catch (err) {
         console.error("Error renewing session:", err);
         return null;
     }
 };
 
-const hash = (length: number) => {
-    let result = "";
-    const characters =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(
-            Math.floor(Math.random() * charactersLength),
-        );
-    }
-    return result;
-};
-
-export { check, renew, generateSessionToken };
+export default { check, renew, generateSessionToken };

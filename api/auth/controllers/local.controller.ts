@@ -7,8 +7,8 @@ import {
     signupResponseI,
 } from "../../models/interfaces/local.interface";
 import { localService } from "../services";
-import { generateRefreshToken } from "../../../utils/jwt/jwt.util";
-import { generateSessionToken } from "../../../utils/jwt/auth.redis";
+import jwtUtils from "../../../utils/jwt/jwt.util";
+import redisUtils from "../../../utils/jwt/auth.redis";
 
 export class LocalController {
     static signup = CatchError(
@@ -56,8 +56,11 @@ export class LocalController {
                 throw new AppError(data.message, data.statusCode);
             }
 
-            const refreshToken = await generateRefreshToken(data.id);
-            const accessToken = await generateSessionToken(data.id, data.role);
+            const refreshToken = await jwtUtils.generateRefreshToken(data.id);
+            const accessToken = await redisUtils.generateSessionToken(
+                data.id,
+                data.role,
+            );
 
             res.status(200).json({
                 accessToken,
