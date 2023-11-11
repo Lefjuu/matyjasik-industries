@@ -1,4 +1,8 @@
-import { decodedTokenI } from "../../api/models/interfaces/token.interface";
+import {
+    decodedTokenI,
+    expireRedisI,
+    setRedisI,
+} from "../../api/models/interfaces/token.interface";
 import { expire, set } from "../../libs/redis.lib";
 import { decodeAccessToken, generateAccessToken } from "./jwt.util";
 import { get } from "http";
@@ -7,8 +11,17 @@ const generateSessionToken = async (id: number, role: string) => {
     const key = `${id}:${hash(8)}`;
     const token = await generateAccessToken({ key, role });
 
+    const expirationTime = process.env.REDIS_EXPIRES_IN || "";
+
     if (token) {
-        await set(key, token, "EX", process.env.REDIS_EXPIRES_IN || "");
+        const redisArgs: setRedisI = {
+            key,
+            token,
+            expirationFlag: "EX",
+            expiration: expirationTime,
+        };
+
+        await set(redisArgs);
         return token;
     }
 
@@ -28,7 +41,12 @@ const check = async (token: string) => {
 
 const renew = async (key: string): Promise<void | null> => {
     try {
-        await expire(key, process.env.REDIS_EXPIRES_IN || "");
+        const redisArgs: expireRedisI = {
+            key,
+            // deleted expirationFlag "EX"
+            expiration: process.env.REDIS_EXPIRES_IN || "",
+        };
+        await expire(redisArgs);
     } catch (err) {
         console.error("Error renewing session:", err);
         return null;

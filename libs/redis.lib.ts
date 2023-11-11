@@ -1,4 +1,12 @@
 import Redis, { Redis as RedisClient } from "ioredis";
+import {
+    expireRedisI,
+    setRedisI,
+} from "../api/models/interfaces/token.interface";
+
+type SetFunction = (args: setRedisI) => Promise<string | null>;
+type GetFunction = (key: string) => Promise<string | null>;
+type ExpireFunction = (args: expireRedisI) => Promise<number>;
 
 let redis: RedisClient | undefined;
 
@@ -28,29 +36,30 @@ const connect = (): Promise<void> => {
     });
 };
 
-type SetFunction = (...args: string[]) => Promise<string | null>;
-type GetFunction = (...args: string[]) => Promise<string | null>;
-type ExpireFunction = (...args: string[]) => Promise<number>;
-
-const set: SetFunction = async (...args) => {
+const set: SetFunction = async (args) => {
     if (!redis) {
         throw new Error("Redis connection is not established.");
     }
-    return redis.set(...args);
+    return redis.set(
+        args.key,
+        args.token,
+        args.expirationFlag,
+        args.expiration,
+    );
 };
 
-const get: GetFunction = async (...args) => {
+const get: GetFunction = async (key) => {
     if (!redis) {
         throw new Error("Redis connection is not established.");
     }
-    return redis.get(...args);
+    return redis.get(key);
 };
 
-const expire: ExpireFunction = async (...args) => {
+const expire: ExpireFunction = async (args) => {
     if (!redis) {
         throw new Error("Redis connection is not established.");
     }
-    return redis.expire(...args);
+    return redis.expire(args.key, args.expiration);
 };
 
 export { connect, redis, set, get, expire };
