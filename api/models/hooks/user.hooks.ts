@@ -1,7 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Provider } from "@prisma/client";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { createUserI, updateUserI } from "../interfaces/local.interface";
+import {
+    createUserI,
+    createdUserI,
+    updateUserI,
+} from "../interfaces/local.interface";
+import { SocialProfileI } from "../interfaces/google.interface";
 
 const prisma = new PrismaClient();
 
@@ -50,4 +55,38 @@ export const correctPassword = async (
     password: string,
 ) => {
     return await bcrypt.compare(candidatePassword, password);
+};
+
+export const loginByGoogle = async (
+    profile: SocialProfileI,
+): Promise<createdUserI> => {
+    try {
+        let user = await prisma.user.findUnique({
+            where: {
+                socialId: profile.id,
+                email: profile.email,
+            },
+        });
+
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    provider: profile.provider.toUpperCase() as Provider,
+                    email: profile.email,
+                    socialId: profile.id,
+                    password: "",
+                    firstName: "",
+                    lastName: "",
+                    verifyToken: "",
+                    verifyTokenExpires: new Date(),
+                    verified: true,
+                },
+            });
+        }
+
+        return user;
+    } catch (error) {
+        console.error("Error in loginBySocial:", error);
+        throw new Error("Social login failed");
+    }
 };
