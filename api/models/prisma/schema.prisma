@@ -20,6 +20,8 @@ model User {
     verifyTokenExpires DateTime
     createdAt          DateTime @default(now())
     updatedAt          DateTime @updatedAt
+    socialId           String   @unique
+    provider           Provider @default(LOCAL)
 }
 
 enum Role {
@@ -36,4 +38,9 @@ model Task {
     datePublished DateTime
     userId        Int
     user          User     @relation(fields: [userId], references: [id])
+}
+
+enum Provider {
+    LOCAL
+    GOOGLE
 }
