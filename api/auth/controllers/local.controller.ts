@@ -3,12 +3,18 @@ import AppError from "../../../utils/exceptions/AppError";
 import CatchError from "../../../utils/exceptions/CatchError";
 import {
     createUserI,
+    decodedUserI,
     loginResponseI,
     signupResponseI,
+    userI,
 } from "../../models/interfaces/local.interface";
 import { localService } from "../services";
 import jwtUtils from "../../../utils/jwt/jwt.util";
 import redisUtils from "../../../utils/jwt/auth.redis";
+
+export interface CustomRequest extends Request {
+    decodedUser?: decodedUserI;
+}
 
 export class LocalController {
     static signup = CatchError(
@@ -75,6 +81,22 @@ export class LocalController {
             });
         },
     );
+
+    static me = CatchError(async (req: CustomRequest, res: Response<userI>) => {
+        if (req.decodedUser && req.decodedUser.id) {
+            const id = req.decodedUser.id;
+
+            const data = await localService.me(parseInt(id));
+
+            if (data instanceof AppError) {
+                throw new AppError(data.message, data.statusCode);
+            }
+
+            res.status(200).json({ ...data });
+        } else {
+            throw new AppError("Please provide a valid user ID!", 400);
+        }
+    });
 }
 
 export default LocalController;

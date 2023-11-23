@@ -29,7 +29,7 @@ export const beforeCreate = async (userData: createUserI) => {
             password: hashedPassword,
             verifyToken: verifyToken,
             verifyTokenExpires: expirationTime,
-            socialId: "",
+            socialId: null,
         },
     });
 

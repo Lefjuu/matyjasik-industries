@@ -5,6 +5,7 @@ import AppError from "../../../utils/exceptions/AppError";
 import {
     createUserI,
     createdUserI,
+    userI,
 } from "../../models/interfaces/local.interface";
 import { Email } from "../../../utils/emails/send.email";
 import { correctPassword } from "../../models/hooks/user.hooks";
@@ -37,7 +38,7 @@ const signup = async (
                 password: hashedPassword,
                 verifyToken: verifyToken,
                 verifyTokenExpires: expirationTime,
-                socialId: "",
+                socialId: null,
             },
         });
         console.log(url);
@@ -66,4 +67,22 @@ const login = async (email: string, password: string) => {
     }
 };
 
-export default { signup, login };
+const me = async (id: number): Promise<userI> => {
+    const user = await prisma.user.findUnique({
+        where: { id },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+        },
+    });
+    if (!user) {
+        throw new AppError("User not found", 404);
+    } else {
+        return user;
+    }
+};
+
+export default { signup, login, me };

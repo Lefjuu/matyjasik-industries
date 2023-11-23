@@ -39,3 +39,18 @@ export interface loginResponseI {
         role: string;
     };
 }
+
+export interface userI {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+}
+
+export interface decodedUserI {
+    id: string;
+    key: string;
+    iat: number;
+    role: string;
+}
