@@ -20,7 +20,7 @@ model User {
     verifyTokenExpires DateTime
     createdAt          DateTime @default(now())
     updatedAt          DateTime @updatedAt
-    socialId           String   @unique
+    socialId           String?  @unique
     provider           Provider @default(LOCAL)
 }
 
