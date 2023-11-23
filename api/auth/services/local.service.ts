@@ -37,6 +37,7 @@ const signup = async (
                 password: hashedPassword,
                 verifyToken: verifyToken,
                 verifyTokenExpires: expirationTime,
+                socialId: "",
             },
         });
         console.log(url);
