@@ -1,10 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import AppError from "../../../utils/exceptions/AppError";
 import redisUtils from "../../../utils/jwt/auth.redis";
+import { decodedUserI } from "../../models/interfaces/local.interface";
+
+interface CustomRequest extends Request {
+    decodedUser?: decodedUserI;
+}
 
 export const mw =
     (required: string[] = []) =>
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: CustomRequest, res: Response, next: NextFunction) => {
         try {
             const token = req.headers.authorization;
 
@@ -23,9 +28,14 @@ export const mw =
                 return next(new AppError("Invalid token format", 400));
             }
 
-            const decoded = await redisUtils.check(tokenParts[1]);
+            const decoded: decodedUserI | null = await redisUtils.check(
+                tokenParts[1],
+            );
 
-            if (decoded && required.length > 0 && "ROLE" in decoded) {
+            if (!decoded) {
+                throw new AppError("You are not authorized", 401);
+            }
+            if (required.length > 0 && decoded.role) {
                 const isAuthorized = required.some((role) =>
                     decoded.role.includes(role),
                 );
@@ -33,14 +43,13 @@ export const mw =
                     throw new AppError("You are not authorized", 401);
                 }
             }
-            if (decoded) {
-                await redisUtils.renew(decoded.key);
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (req as any).user = decoded;
-                next();
-            } else {
-                throw new AppError("You are not authorized", 401);
-            }
+
+            await redisUtils.renew(decoded.key);
+            console.log(decoded);
+
+            req.decodedUser = decoded;
+
+            next();
         } catch (error) {
             if (error instanceof AppError) {
                 throw new AppError(error.message, error.statusCode);
