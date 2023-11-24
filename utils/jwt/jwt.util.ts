@@ -1,5 +1,8 @@
 import jwt, { Secret } from "jsonwebtoken";
-import { generateAccessTokenI } from "../../api/models/interfaces/token.interface";
+import {
+    decodedJwtTokenI,
+    generateAccessTokenI,
+} from "../../api/models/interfaces/token.interface";
 
 const generateAccessToken = async (data: generateAccessTokenI) => {
     try {
@@ -18,8 +21,7 @@ const generateRefreshToken = (id: number): string => {
     );
 };
 
-// TODO: type of decode
-const decodeAccessToken = (token: string): Promise<unknown> => {
+const decodeAccessToken = (token: string): Promise<decodedJwtTokenI> => {
     return new Promise((resolve, reject) => {
         jwt.verify(
             token,
@@ -29,14 +31,16 @@ const decodeAccessToken = (token: string): Promise<unknown> => {
                     console.log(err);
                     reject(err);
                 } else {
-                    resolve(decoded);
+                    console.log(decoded);
+
+                    resolve(decoded as decodedJwtTokenI);
                 }
             },
         );
     });
 };
 
-const decodeRefreshToken = (token: string): Promise<unknown> => {
+const decodeRefreshToken = (token: string): Promise<decodedJwtTokenI> => {
     return new Promise((resolve, reject) => {
         jwt.verify(
             token,
@@ -45,7 +49,7 @@ const decodeRefreshToken = (token: string): Promise<unknown> => {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(decoded);
+                    resolve(decoded as decodedJwtTokenI);
                 }
             },
         );

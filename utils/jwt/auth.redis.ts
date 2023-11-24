@@ -1,5 +1,5 @@
 import {
-    decodedTokenI,
+    decodedJwtTokenI,
     expireRedisI,
     setRedisI,
 } from "../../api/models/interfaces/token.interface";
@@ -7,9 +7,13 @@ import redisLib from "../../libs/redis.lib";
 import jwtUtils from "./jwt.util";
 import commonUtils from "../common.util";
 
-const generateSessionToken = async (id: number, role: string) => {
-    const key = `${id}:${commonUtils.generateHash(8)}`;
-    const token = await jwtUtils.generateAccessToken({ key, role });
+const generateSessionToken = async (userId: number, role: string) => {
+    const key = `${userId}:${commonUtils.generateHash(8)}`;
+    const token = await jwtUtils.generateAccessToken({
+        key,
+        role,
+        userId,
+    });
 
     const expirationTime = process.env.REDIS_EXPIRES_IN || "";
 
@@ -29,10 +33,10 @@ const generateSessionToken = async (id: number, role: string) => {
 };
 
 const check = async (token: string) => {
-    const decoded = (await jwtUtils.decodeAccessToken(token)) as decodedTokenI;
+    const decoded: decodedJwtTokenI = await jwtUtils.decodeAccessToken(token);
 
-    const data = await redisLib.get(decoded.key);
     if (decoded.key) {
+        const data = await redisLib.get(decoded.key);
         const id = decoded.key.split(":");
         return decoded.key && data ? { ...decoded, id: id[0] } : null;
     }

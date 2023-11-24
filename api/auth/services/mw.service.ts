@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import AppError from "../../../utils/exceptions/AppError";
 import redisUtils from "../../../utils/jwt/auth.redis";
 import { decodedUserI } from "../../models/interfaces/local.interface";
+import { decodedJwtTokenI } from "../../models/interfaces/token.interface";
 
 interface CustomRequest extends Request {
     decodedUser?: decodedUserI;
@@ -28,9 +29,11 @@ export const mw =
                 return next(new AppError("Invalid token format", 400));
             }
 
-            const decoded: decodedUserI | null = await redisUtils.check(
+            const decoded: decodedJwtTokenI | null = await redisUtils.check(
                 tokenParts[1],
             );
+
+            console.log(decoded);
 
             if (!decoded) {
                 throw new AppError("You are not authorized", 401);
@@ -45,14 +48,15 @@ export const mw =
             }
 
             await redisUtils.renew(decoded.key);
-            console.log(decoded);
 
             req.decodedUser = decoded;
 
             next();
         } catch (error) {
             if (error instanceof AppError) {
-                throw new AppError(error.message, error.statusCode);
+                console.log("here");
+
+                next(new AppError(error.message, error.statusCode));
             } else {
                 console.error(error);
                 return res.status(403).json({ msg: "Token expired in redis" });
