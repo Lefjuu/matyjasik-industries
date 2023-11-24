@@ -85,4 +85,25 @@ const me = async (id: number): Promise<userI> => {
     }
 };
 
-export default { signup, login, me };
+const verify = async (token: string) => {
+    const user = await prisma.user.findFirst({
+        where: { verifyToken: token },
+    });
+
+    if (!user || user.verifyTokenExpires < new Date()) {
+        return new AppError(`Token expired`, 401);
+    }
+
+    const updatedUser = await prisma.user.update({
+        where: {
+            id: user.id,
+        },
+        data: {
+            verified: true,
+        },
+    });
+
+    return updatedUser;
+};
+
+export default { signup, login, me, verify };

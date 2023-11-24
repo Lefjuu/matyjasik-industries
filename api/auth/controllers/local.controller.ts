@@ -97,6 +97,22 @@ export class LocalController {
             throw new AppError("Please provide a valid user ID!", 400);
         }
     });
+
+    static verify = CatchError(async (req: Request, res: Response) => {
+        const { token } = req.query;
+
+        if (!token) {
+            throw new AppError("Please provide a token!", 400);
+        }
+
+        const data = await localService.verify(token.toString());
+
+        if (data instanceof AppError) {
+            throw new AppError(data.message, data.statusCode);
+        }
+
+        res.status(200).json({ ...data });
+    });
 }
 
 export default LocalController;
