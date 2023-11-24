@@ -8,9 +8,10 @@ import {
     signupResponseI,
     userI,
 } from "../../models/interfaces/local.interface";
-import { localService } from "../services";
+import { localService, userService } from "../services";
 import jwtUtils from "../../../utils/jwt/jwt.util";
 import redisUtils from "../../../utils/jwt/auth.redis";
+import { decodedJwtTokenI } from "../../models/interfaces/token.interface";
 
 export interface CustomRequest extends Request {
     decodedUser?: decodedUserI;
@@ -87,7 +88,6 @@ export class LocalController {
             const id = req.decodedUser.id;
 
             const data = await localService.me(parseInt(id));
-
             if (data instanceof AppError) {
                 throw new AppError(data.message, data.statusCode);
             }
@@ -106,12 +106,43 @@ export class LocalController {
         }
 
         const data = await localService.verify(token.toString());
-
         if (data instanceof AppError) {
             throw new AppError(data.message, data.statusCode);
         }
 
         res.status(200).json({ ...data });
+    });
+
+    static refresh = CatchError(async (req: Request, res: Response) => {
+        const refreshToken: string | string[] | undefined =
+            req.body.refreshToken;
+
+        if (typeof refreshToken !== "string") {
+            throw new AppError("Invalid or missing Refresh token.", 401);
+        }
+
+        const decoded: decodedJwtTokenI =
+            await jwtUtils.decodeRefreshToken(refreshToken);
+        console.log(decoded);
+
+        const user = await userService.getUser(decoded.userId);
+        if (!user) {
+            throw new AppError(
+                "The user belonging to this token does no longer exist.",
+                401,
+            );
+        }
+
+        const newRefreshToken = await jwtUtils.generateRefreshToken(user.id);
+        const accessToken = await redisUtils.generateSessionToken(
+            user.id,
+            user.role,
+        );
+
+        res.status(200).json({
+            accessToken,
+            refreshToken: newRefreshToken,
+        });
     });
 }
 
